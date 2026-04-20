@@ -93,6 +93,7 @@ let S = {
   user: JSON.parse(localStorage.getItem('kp_user') || 'null'),
   bk: { step: 1, svcId: null, date: null, time: null, pay: null },
   adminView: 'agenda',
+  adminAuth: false,
   loading: false
 };
 
@@ -451,6 +452,35 @@ function apptCard(a, past=false) {
   </div>`;
 }
 
+function renderAdminLogin() {
+  return `<div class="fade-in" style="padding:20px 16px;display:flex;flex-direction:column;align-items:center;padding-top:60px;">
+  <div style="width:68px;height:68px;border-radius:50%;background:var(--gold-dim);border:2px solid var(--gold);display:flex;align-items:center;justify-content:center;margin-bottom:18px;">
+    <svg width="30" height="30" viewBox="0 0 24 24" fill="none"><rect x="5" y="11" width="14" height="10" rx="2" stroke="var(--gold)" stroke-width="1.5"/><path d="M8 11V7a4 4 0 0 1 8 0v4" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"/></svg>
+  </div>
+  <p style="font-family:var(--font-serif);font-size:22px;margin-bottom:6px;">Panel administrador</p>
+  <p style="color:var(--tx2);font-size:13px;margin-bottom:28px;text-align:center;">Solo Karen Perez puede acceder</p>
+  <div style="width:100%;max-width:300px;">
+    <label style="color:var(--tx2);font-size:12px;display:block;margin-bottom:6px;">Contraseña</label>
+    <input class="inp" id="admin-pass" type="password" placeholder="Ingresa la contraseña" style="margin-bottom:12px;"/>
+    <button class="gold-btn" onclick="checkAdminPass()">Entrar →</button>
+    <button onclick="go('profile')" style="background:transparent;border:none;color:var(--tx2);font-size:13px;width:100%;margin-top:12px;cursor:pointer;">← Volver</button>
+  </div>
+  </div>`;
+}
+
+function checkAdminPass() {
+  const pass = document.getElementById('admin-pass')?.value;
+  if (pass === 'Karen2026*') {
+    S.adminAuth = true;
+    S.screen = 'admin';
+    S.adminView = 'agenda';
+    loadAllAppts().then(render);
+  } else {
+    toast('Contraseña incorrecta');
+    document.getElementById('admin-pass').value = '';
+  }
+}
+
 function renderProfile() {
   const tot = S.appts.filter(a=>a.estado!=='cancelada').length;
   const comp = S.appts.filter(a=>a.estado==='completada').length;
@@ -486,7 +516,7 @@ function renderProfile() {
     <div style="display:flex;align-items:center;gap:8px;"><span style="width:8px;height:8px;border-radius:50%;background:var(--gr);"></span><span style="color:var(--tx2);font-size:13px;">2 horas antes de tu cita</span></div>
   </div>
 
-  <button onclick="go('admin')" style="background:var(--bg1);border:0.5px solid rgba(201,168,76,.2);border-radius:12px;padding:13px;font-size:13px;color:var(--gold);width:100%;cursor:pointer;font-family:var(--font-sans);">
+  <button onclick="go('adminLogin')" style="background:var(--bg1);border:0.5px solid rgba(201,168,76,.2);border-radius:12px;padding:13px;font-size:13px;color:var(--gold);width:100%;cursor:pointer;font-family:var(--font-sans);">
     Panel administrador →
   </button>
   </div>`;
@@ -673,7 +703,7 @@ async function saveProfile() {
 
 // ── RENDER ──
 function render() {
-  const screens = { home:renderHome, services:renderServices, book:renderBook, bookOk:renderBookOk, appointments:renderAppts, profile:renderProfile, admin:renderAdmin };
+  const screens = { home:renderHome, services:renderServices, book:renderBook, bookOk:renderBookOk, appointments:renderAppts, profile:renderProfile, admin:renderAdmin, adminLogin:renderAdminLogin };
   const el = document.getElementById('screen');
   el.innerHTML = (screens[S.screen] || renderHome)();
   el.scrollTop = 0;
